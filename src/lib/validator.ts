@@ -35,14 +35,15 @@ export function validateFile(file: File): { valid: boolean; error?: string } {
   const lastDot = name.lastIndexOf(".");
   const ext = lastDot >= 0 ? name.substring(lastDot) : "";
 
-  if (![".txt", ".xlsx", ".xls"].includes(ext)) {
+  if (![".csv", ".xlsx", ".xls"].includes(ext)) {
     return {
       valid: false,
-      error: `Неподдерживаемое расширение "${ext}". Допустимые: .txt, .xlsx, .xls`,
+      error: `Неподдерживаемое расширение "${ext}". Допустимые: .csv, .xlsx, .xls`,
     };
   }
 
   const allowedMimes = [
+    "text/csv",
     "text/plain",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "application/vnd.ms-excel",
@@ -54,11 +55,12 @@ export function validateFile(file: File): { valid: boolean; error?: string } {
     };
   }
 
-  const maxSize = 5 * 1024 * 1024;
-  if (file.size > maxSize) {
+  const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1 MB
+  if (file.size > MAX_FILE_SIZE) {
     return {
       valid: false,
-      error: `Файл слишком большой (${(file.size / 1024 / 1024).toFixed(1)} МБ). Максимум — 5 МБ`,
+      error:
+        "Файл слишком большой. Максимальный размер — 1 МБ\n(до 104 недель наблюдений, 8 метрик). Убедитесь,\nчто файл не содержит лишних листов или форматирования.",
     };
   }
 

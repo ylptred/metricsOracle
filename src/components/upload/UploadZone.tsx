@@ -71,7 +71,7 @@ export function UploadZone({ onResult }: Props) {
       <div
         role="button"
         tabIndex={0}
-        aria-label={file ? `Выбран файл ${file.name}, нажмите чтобы заменить` : "Зона загрузки файла. Перетащите .txt или .xlsx или нажмите Enter для выбора"}
+        aria-label={file ? `Выбран файл ${file.name}, нажмите чтобы заменить` : "Зона загрузки файла. Перетащите .csv или .xlsx или нажмите Enter для выбора"}
         onClick={() => inputRef.current?.click()}
         onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
         onDragOver={handleDragOver}
@@ -82,7 +82,7 @@ export function UploadZone({ onResult }: Props) {
         <input
           ref={inputRef}
           type="file"
-          accept=".txt,.xlsx"
+          accept=".csv,.xlsx"
           className="hidden"
           onChange={handleInputChange}
         />
@@ -110,7 +110,7 @@ export function UploadZone({ onResult }: Props) {
               </p>
               <p className="mt-1 text-sm text-zinc-600">
                 <FileText className="mr-1 inline h-3.5 w-3.5" />
-                .txt · .xlsx
+                .csv · .xlsx
               </p>
             </div>
           </div>

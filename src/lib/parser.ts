@@ -76,7 +76,7 @@ export async function parseFile(file: File): Promise<ParsedData> {
 
   let data: ParsedData;
 
-  if (name.endsWith(".txt")) {
+  if (name.endsWith(".csv")) {
     const content = await readAsText(file);
     data = parseTxt(content);
   } else if (name.endsWith(".xlsx") || name.endsWith(".xls")) {

@@ -71,12 +71,13 @@ export function UploadZone({ onResult }: Props) {
       <div
         role="button"
         tabIndex={0}
+        aria-label={file ? `Выбран файл ${file.name}, нажмите чтобы заменить` : "Зона загрузки файла. Перетащите .txt или .xlsx или нажмите Enter для выбора"}
         onClick={() => inputRef.current?.click()}
         onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-all duration-200 ${borderColor}`}
+        className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${borderColor}`}
       >
         <input
           ref={inputRef}

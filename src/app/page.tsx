@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Upload, BarChart3, Zap, Shield, ChevronDown, Loader2 } from "lucide-react";
 import { UploadZone } from "@/components/upload/UploadZone";
 import { Dashboard } from "@/components/dashboard/Dashboard";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import type { AnalysisResult } from "@/types";
 
 const STEPS = [
@@ -101,6 +102,7 @@ export default function Home() {
           <button
             onClick={runDemo}
             disabled={isDemoLoading}
+            aria-label="Запустить демо-анализ на синтетических данных"
             className="flex items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900 px-7 py-3 text-sm font-semibold text-zinc-200 transition-colors hover:border-zinc-600 hover:bg-zinc-800 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
           >
             {isDemoLoading && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -185,7 +187,9 @@ export default function Home() {
           <section className="px-4 pb-24 pt-8">
             <div className="mx-auto max-w-7xl">
               <h2 className="mb-10 text-center text-3xl font-bold">Результаты анализа</h2>
-              <Dashboard result={result} />
+              <ErrorBoundary>
+                <Dashboard result={result} />
+              </ErrorBoundary>
             </div>
           </section>
         )}

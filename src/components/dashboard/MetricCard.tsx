@@ -50,7 +50,11 @@ export function MetricCard({ analysis, periods: _periods }: Props) {
 
       <div className="mb-4 flex items-center gap-3 text-sm text-zinc-500">
         <div className="group relative inline-block">
-          <span className="cursor-help rounded border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-xs font-mono text-zinc-400 transition-colors hover:border-zinc-600">
+          <span
+            className="cursor-help rounded border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-xs font-mono text-zinc-400 transition-colors hover:border-zinc-600"
+            aria-label={`Метод анализа: ${method === "zscore" ? "Z-Score" : "IQR"}. ${METHOD_TOOLTIP[method]}`}
+            tabIndex={0}
+          >
             {method === "zscore" ? "Z-Score" : "IQR"}
           </span>
           <div className="pointer-events-none absolute bottom-full left-0 z-20 mb-2 w-56 rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs leading-relaxed text-zinc-300 opacity-0 shadow-xl transition-opacity group-hover:opacity-100">

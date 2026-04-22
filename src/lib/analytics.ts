@@ -1,12 +1,12 @@
-import type { MetricAnalysis, ParsedData } from "@/types";
+import type { MetricAnalysis, ParsedData, TrafficLight } from "@/types";
 
-function mean(values: number[]): number {
+function calcMean(values: number[]): number {
   return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
-function std(values: number[], avg: number): number {
+function calcStd(values: number[], mean: number): number {
   const variance =
-    values.reduce((sum, v) => sum + Math.pow(v - avg, 2), 0) / values.length;
+    values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
   return Math.sqrt(variance);
 }
 
@@ -19,48 +19,107 @@ function quantile(sorted: number[], q: number): number {
     : sorted[base];
 }
 
-function zScoreAnalysis(name: string, values: number[]): MetricAnalysis {
-  const avg = mean(values);
-  const sigma = std(values, avg);
-  const latestZ = sigma === 0 ? 0 : Math.abs((values[values.length - 1] - avg) / sigma);
-  const zone = latestZ < 1.5 ? "green" : latestZ < 2.5 ? "yellow" : "red";
-  return { name, method: "zscore", score: latestZ, zone, values, mean: avg, std: sigma };
+export function isNormalDistribution(values: number[]): boolean {
+  const n = values.length;
+  const mean = calcMean(values);
+  const sigma = calcStd(values, mean);
+  if (sigma === 0) return false;
+
+  const skewness =
+    values.reduce((sum, v) => sum + ((v - mean) / sigma) ** 3, 0) / n;
+  const kurtosis =
+    values.reduce((sum, v) => sum + ((v - mean) / sigma) ** 4, 0) / n;
+
+  return Math.abs(skewness) < 1 && Math.abs(kurtosis - 3) < 2;
 }
 
-function iqrAnalysis(name: string, values: number[]): MetricAnalysis {
+export function calculateZScore(values: number[]): {
+  scores: number[];
+  mean: number;
+  std: number;
+} {
+  const mean = calcMean(values);
+  const std = calcStd(values, mean);
+  const scores =
+    std === 0 ? values.map(() => 0) : values.map((v) => (v - mean) / std);
+  return { scores, mean, std };
+}
+
+export function calculateIQR(values: number[]): {
+  scores: number[];
+  q1: number;
+  q3: number;
+  iqrValue: number;
+} {
   const sorted = [...values].sort((a, b) => a - b);
   const q1 = quantile(sorted, 0.25);
   const q3 = quantile(sorted, 0.75);
   const iqrValue = q3 - q1;
-  const latest = values[values.length - 1];
-  const lowerFence = q1 - 1.5 * iqrValue;
-  const upperFence = q3 + 1.5 * iqrValue;
-
-  let score = 0;
-  let zone: MetricAnalysis["zone"] = "green";
-  if (latest < lowerFence || latest > upperFence) {
-    const extremeFence = iqrValue === 0 ? 0 : Math.abs(latest - (latest > q3 ? upperFence : lowerFence)) / (iqrValue || 1);
-    score = extremeFence;
-    zone = extremeFence > 1 ? "red" : "yellow";
-  }
-
-  return { name, method: "iqr", score, zone, values, q1, q3, iqrValue };
+  const scores = values.map((v) => (v < q1 ? v - q1 : v > q3 ? v - q3 : 0));
+  return { scores, q1, q3, iqrValue };
 }
 
-function chooseMethod(values: number[]): "zscore" | "iqr" {
-  if (values.length < 8) return "iqr";
-  const avg = mean(values);
-  const sigma = std(values, avg);
-  if (sigma === 0) return "iqr";
-  const skewness =
-    values.reduce((sum, v) => sum + Math.pow((v - avg) / sigma, 3), 0) /
-    values.length;
-  return Math.abs(skewness) > 1 ? "iqr" : "zscore";
+export function determineZone(
+  score: number,
+  method: "zscore" | "iqr"
+): "green" | "yellow" | "red" {
+  if (method === "zscore") {
+    const abs = Math.abs(score);
+    if (abs - 1 > 2) return "red";
+    if (abs - 1 >= 0) return "yellow";
+    return "green";
+  } else {
+    const abs = Math.abs(score);
+    if (abs > 2) return "red";
+    if (abs > 0) return "yellow";
+    return "green";
+  }
 }
 
 export function analyzeMetric(name: string, values: number[]): MetricAnalysis {
-  const method = chooseMethod(values);
-  return method === "zscore" ? zScoreAnalysis(name, values) : iqrAnalysis(name, values);
+  const method: "zscore" | "iqr" = isNormalDistribution(values)
+    ? "zscore"
+    : "iqr";
+
+  if (method === "zscore") {
+    const { scores, mean, std } = calculateZScore(values);
+    const zones = scores.map((s) => determineZone(s, "zscore"));
+    const worstZone = zones.includes("red")
+      ? "red"
+      : zones.includes("yellow")
+      ? "yellow"
+      : "green";
+    const maxAbsScore = Math.max(...scores.map(Math.abs));
+    return { name, method, score: maxAbsScore, zone: worstZone, values, mean, std };
+  } else {
+    const { scores, q1, q3, iqrValue } = calculateIQR(values);
+    const zones = scores.map((s) => determineZone(s, "iqr"));
+    const worstZone = zones.includes("red")
+      ? "red"
+      : zones.includes("yellow")
+      ? "yellow"
+      : "green";
+    const maxAbsScore = Math.max(...scores.map(Math.abs));
+    return { name, method, score: maxAbsScore, zone: worstZone, values, q1, q3, iqrValue };
+  }
+}
+
+export function buildTrafficLight(metrics: MetricAnalysis[]): TrafficLight {
+  const redCount = metrics.filter((m) => m.zone === "red").length;
+  const yellowOrRedCount = metrics.filter(
+    (m) => m.zone === "yellow" || m.zone === "red"
+  ).length;
+
+  let overall: "green" | "yellow" | "red";
+  if (redCount >= 3) {
+    overall = "red";
+  } else if (yellowOrRedCount >= 3) {
+    overall = "yellow";
+  } else {
+    overall = "green";
+  }
+
+  return { overall, metrics };
 }
 
 export function analyzeAll(data: ParsedData): MetricAnalysis[] {

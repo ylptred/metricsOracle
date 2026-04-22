@@ -29,3 +29,38 @@ export function validateParsedData(data: ParsedData): {
     errors: result.error.errors.map((e) => e.message),
   };
 }
+
+export function validateFile(file: File): { valid: boolean; error?: string } {
+  const name = file.name.toLowerCase();
+  const lastDot = name.lastIndexOf(".");
+  const ext = lastDot >= 0 ? name.substring(lastDot) : "";
+
+  if (![".txt", ".xlsx", ".xls"].includes(ext)) {
+    return {
+      valid: false,
+      error: `Неподдерживаемое расширение "${ext}". Допустимые: .txt, .xlsx, .xls`,
+    };
+  }
+
+  const allowedMimes = [
+    "text/plain",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel",
+  ];
+  if (file.type && !allowedMimes.includes(file.type)) {
+    return {
+      valid: false,
+      error: `Неподдерживаемый MIME-тип: ${file.type}`,
+    };
+  }
+
+  const maxSize = 5 * 1024 * 1024;
+  if (file.size > maxSize) {
+    return {
+      valid: false,
+      error: `Файл слишком большой (${(file.size / 1024 / 1024).toFixed(1)} МБ). Максимум — 5 МБ`,
+    };
+  }
+
+  return { valid: true };
+}

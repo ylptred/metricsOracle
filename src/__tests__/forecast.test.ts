@@ -3,25 +3,29 @@ import { linearRegression, forecastMetric, buildForecast } from "@/lib/forecast"
 import type { MetricAnalysis } from "@/types";
 
 describe("linearRegression", () => {
-  it("returns correct slope and intercept for linear data", () => {
-    const values = [1, 2, 3, 4, 5];
-    const { slope, intercept } = linearRegression(values);
-    expect(slope).toBeCloseTo(1, 5);
-    expect(intercept).toBeCloseTo(1, 5);
+  it("slope=-1 for descending sequence (last two points: 6→5)", () => {
+    const values = [10, 9, 8, 7, 6, 5];
+    const { slope } = linearRegression(values);
+    expect(slope).toBe(-1);
   });
 
-  it("returns slope≈2 and intercept≈1 for y=2x+1", () => {
-    // x=0..4 → y=1,3,5,7,9
-    const values = [1, 3, 5, 7, 9];
-    const { slope, intercept } = linearRegression(values);
-    expect(slope).toBeCloseTo(2, 5);
-    expect(intercept).toBeCloseTo(1, 5);
+  it("slope=1 for values where last two points rise (3→4)", () => {
+    const values = [1, 2, 1, 2, 3, 4];
+    const { slope } = linearRegression(values);
+    expect(slope).toBe(1);
   });
 
-  it("returns zero slope for constant data", () => {
-    const values = [5, 5, 5, 5, 5];
+  it("slope=0 for constant data", () => {
+    const values = [5, 5, 5, 5, 5, 5];
     const { slope } = linearRegression(values);
     expect(slope).toBe(0);
+  });
+
+  it("intercept satisfies y = slope*x + intercept at last point", () => {
+    const values = [10, 9, 8, 7, 6, 5];
+    const { slope, intercept } = linearRegression(values);
+    const n = values.length;
+    expect(slope * (n - 1) + intercept).toBeCloseTo(values[n - 1], 10);
   });
 });
 
@@ -36,8 +40,8 @@ describe("forecastMetric", () => {
 });
 
 describe("buildForecast", () => {
-  it("returns non-null periodsUntilZoneChange for rising metric in yellow zone", () => {
-    // values 1..10, mean=5.5, std≈2.872, last z-score ≈ 1.57 → yellow
+  it("returns non-null periodsUntilZoneChange when last two points push metric toward zone boundary", () => {
+    // Last two values: 8, 9 → slope=1. metric is in yellow, heading to red.
     const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     const mean = 5.5;
     const std = Math.sqrt(

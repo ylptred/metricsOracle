@@ -77,16 +77,31 @@ const CustomTooltip = ({
   );
 };
 
+const FORECAST_AHEAD = 5;
+
 export function MetricChart({ analysis, forecast, periods }: Props) {
-  const data = analysis.values.map((value, i) => ({
+  const n = analysis.values.length;
+
+  const historicalData = analysis.values.map((value, i) => ({
     period: periods[i] ?? `${i + 1}`,
     value,
     trend: forecast.trendLine[i],
+    forecastTrend: i === n - 1 ? forecast.trendLine[i] : undefined,
   }));
+
+  const forecastData = Array.from({ length: FORECAST_AHEAD }, (_, i) => ({
+    period: `+${i + 1}`,
+    value: undefined,
+    trend: undefined,
+    forecastTrend: forecast.slope * (n + i) + forecast.intercept,
+  }));
+
+  const data = [...historicalData, ...forecastData];
 
   const thresholds = getThresholds(analysis);
 
-  const allValues = analysis.values.concat(forecast.trendLine);
+  const forecastValues = forecastData.map((d) => d.forecastTrend);
+  const allValues = analysis.values.concat(forecast.trendLine).concat(forecastValues);
   const minVal = Math.min(...allValues);
   const maxVal = Math.max(...allValues);
   const padding = (maxVal - minVal) * 0.15 || 1;
@@ -160,7 +175,7 @@ export function MetricChart({ analysis, forecast, periods }: Props) {
           activeDot={{ r: 4, fill: "#60a5fa" }}
         />
         <Line
-          type="monotone"
+          type="linear"
           dataKey="trend"
           name="тренд"
           stroke="#a78bfa"
@@ -168,6 +183,17 @@ export function MetricChart({ analysis, forecast, periods }: Props) {
           strokeDasharray="6 3"
           dot={false}
           activeDot={false}
+        />
+        <Line
+          type="linear"
+          dataKey="forecastTrend"
+          name="прогноз"
+          stroke="#a78bfa"
+          strokeWidth={1.5}
+          strokeDasharray="3 3"
+          dot={false}
+          activeDot={false}
+          connectNulls={false}
         />
       </ComposedChart>
     </ResponsiveContainer>

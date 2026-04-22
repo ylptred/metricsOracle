@@ -6,18 +6,12 @@ export function linearRegression(values: number[]): {
   intercept: number;
 } {
   const n = values.length;
-  const xs = values.map((_, i) => i);
-  const xMean = (n - 1) / 2;
-  const yMean = values.reduce((a, b) => a + b, 0) / n;
-
-  const ssXX = xs.reduce((sum, x) => sum + (x - xMean) ** 2, 0);
-  const ssXY = xs.reduce(
-    (sum, x, i) => sum + (x - xMean) * (values[i] - yMean),
-    0
-  );
-
-  const slope = ssXX === 0 ? 0 : ssXY / ssXX;
-  const intercept = yMean - slope * xMean;
+  const x0 = n - 2;
+  const x1 = n - 1;
+  const y0 = values[x0];
+  const y1 = values[x1];
+  const slope = y1 - y0;
+  const intercept = y1 - slope * x1;
   return { slope, intercept };
 }
 
@@ -122,10 +116,20 @@ export function buildForecast(
   }
 
   let prediction: string;
-  if (periodsUntilZoneChange !== null) {
-    prediction = `При текущем тренде метрика покинет ${zoneLabel(currentZone)} зону через ~${periodsUntilZoneChange} ${periodWord(periodsUntilZoneChange)}`;
-  } else {
+  const absSlope = Math.abs(slope);
+  const slopeText =
+    slope < 0
+      ? `Метрика снижается на ${absSlope.toFixed(2)} ед./период.`
+      : slope > 0
+        ? `Метрика растёт на ${absSlope.toFixed(2)} ед./период.`
+        : "";
+
+  if (slope === 0) {
     prediction = "Метрика стабильна, зона не изменится в ближайшие 24 периода";
+  } else if (periodsUntilZoneChange !== null) {
+    prediction = `${slopeText} При текущем темпе покинет ${zoneLabel(currentZone)} зону через ~${periodsUntilZoneChange} ${periodWord(periodsUntilZoneChange)}`;
+  } else {
+    prediction = `${slopeText} Зона не изменится в ближайшие 24 периода`;
   }
 
   return {

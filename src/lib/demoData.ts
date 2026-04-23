@@ -11,6 +11,33 @@ const METRICS = [
   "automation_coverage",
 ];
 
+// Hardcoded series for metrics that need clearly non-normal distributions (sharp mid-period peak).
+// Peak is contained to W11–W16 (6 values), rest is baseline — this keeps Q3 at baseline level
+// so Tukey fences are visible on the chart and outlier peaks land above upperFence.
+const WIP_TESTING_VALUES = [
+  8, 7, 8, 9, 7, 8, 9, 7, 8,        // W01–W09: stable low 7-9
+  9,                                   // W10: still baseline
+  14, 16, 17, 18, 16, 14,            // W11–W16: peak (above upperFence ≈13.6)
+  8, 8,                                // W17–W18: quick return
+  9, 8, 9, 8, 9, 8,                  // W19–W24: stable low → last point green
+];
+
+const BUG_LIFETIME_VALUES = [
+  2.2, 2.0, 2.3, 2.5, 2.0, 2.4, 2.2, 2.0, 2.3,  // W01–W09: stable 2.0-2.5
+  2.5,                                               // W10: baseline
+  8.0, 10.0, 11.0, 12.0, 10.0, 8.0,               // W11–W16: peak (above upperFence ≈8.1)
+  3.5, 3.0,                                          // W17–W18: transition
+  2.5, 2.8, 3.0, 2.5, 2.8, 2.5,                   // W19–W24: return → last point green
+];
+
+const TESTING_CYCLE_VALUES = [
+  6.0, 5.5, 6.0, 7.0, 5.5, 6.5, 7.0, 5.5, 6.0,  // W01–W09: stable 5.5-7
+  6.5,                                               // W10: baseline
+  13.0, 15.0, 17.0, 18.0, 16.0, 14.0,             // W11–W16: peak (above upperFence ≈14.1)
+  8.0, 7.0,                                          // W17–W18: transition
+  7.0, 6.0, 7.5, 6.0, 7.0, 6.5,                   // W19–W24: return → last point green
+];
+
 // Smooth bell-shaped pressure curve: peaks around week 14-15
 function pressureCurve(week: number): number {
   const peak = 14;
@@ -37,19 +64,8 @@ export function generateDemoData(): ParsedData {
       stableNoise(week, 1) * 0.015
     ).toFixed(2);
 
-    // wip_testing: baseline 8, rises to ~22 at peak
-    const wip_testing = +(
-      8 +
-      p * 14 +
-      stableNoise(week, 2) * 1.2
-    ).toFixed(2);
-
-    // bug_lifetime_days: baseline 2.5, correlates with wip_testing
-    const bug_lifetime_days = +(
-      2.5 +
-      p * 4.5 +
-      stableNoise(week, 3) * 0.3
-    ).toFixed(2);
+    const wip_testing = WIP_TESTING_VALUES[i];
+    const bug_lifetime_days = BUG_LIFETIME_VALUES[i];
 
     // release_delivery_speed: baseline 3, drops at peak; mild seasonality ±10%
     const seasonality = 1 + 0.10 * Math.sin((week / 24) * 2 * Math.PI);
@@ -69,12 +85,7 @@ export function generateDemoData(): ParsedData {
       Math.max(0.5, 6 - p * 4.2 + stableNoise(week, 6) * 0.4)
     ).toFixed(2);
 
-    // testing_cycle_time: correlates with bug_lifetime_days; baseline 16h, peaks ~40h
-    const testing_cycle_time = +(
-      16 +
-      p * 24 +
-      stableNoise(week, 7) * 1.5
-    ).toFixed(2);
+    const testing_cycle_time = TESTING_CYCLE_VALUES[i];
 
     // automation_coverage: slow linear growth 35%→58%, plateau during WIP peak (weeks 12-17)
     const plateauFactor = week >= 12 && week <= 17 ? 0.1 : 1;

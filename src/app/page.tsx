@@ -126,6 +126,43 @@ export default function Home() {
         </button>
       </section>
 
+      {/* ─── ПРЕЗЕНТАЦИЯ ──────────────────────────────────────────── */}
+      <section className="w-full flex justify-center px-4 pb-8">
+        <a
+          href="https://disk.yandex.ru/d/47PzDiosrwcnkQ"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group flex items-center gap-4 w-full max-w-2xl
+                     rounded-2xl border border-white/10 bg-white/5
+                     backdrop-blur-sm px-6 py-5
+                     hover:border-white/20 hover:bg-white/10
+                     transition-all duration-300"
+        >
+          <div className="flex-shrink-0 flex items-center justify-center
+                          w-12 h-12 rounded-xl bg-indigo-500/20
+                          group-hover:bg-indigo-500/30 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-indigo-400"
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414
+                       A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-white/60 mb-0.5">Материалы доклада</p>
+            <p className="text-base font-semibold text-white truncate">
+              Презентация: Метрики как спасательный оракул
+            </p>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg"
+               className="w-5 h-5 text-white/30 group-hover:text-white/60
+                          group-hover:translate-x-1 transition-all flex-shrink-0"
+               fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </a>
+      </section>
+
       {/* ─── КАК ЭТО РАБОТАЕТ ─────────────────────────────────────── */}
       <section id="how" className="py-24 px-4">
         <div className="mx-auto max-w-5xl">

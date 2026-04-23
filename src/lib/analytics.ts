@@ -21,16 +21,20 @@ function quantile(sorted: number[], q: number): number {
 
 export function isNormalDistribution(values: number[]): boolean {
   const n = values.length;
-  const mean = calcMean(values);
-  const sigma = calcStd(values, mean);
-  if (sigma === 0) return false;
+  const mean = values.reduce((a, b) => a + b, 0) / n;
+  const std = Math.sqrt(values.reduce((a, b) => a + (b - mean) ** 2, 0) / n);
+  if (std === 0) return false;
 
-  const skewness =
-    values.reduce((sum, v) => sum + ((v - mean) / sigma) ** 3, 0) / n;
-  const kurtosis =
-    values.reduce((sum, v) => sum + ((v - mean) / sigma) ** 4, 0) / n;
+  const cv = std / Math.abs(mean);
+  if (cv > 0.5) return false;
 
-  return Math.abs(skewness) < 1 && Math.abs(kurtosis - 3) < 2;
+  const skewness = values.reduce((a, b) => a + ((b - mean) / std) ** 3, 0) / n;
+  if (Math.abs(skewness) > 0.8) return false;
+
+  const kurtosis = values.reduce((a, b) => a + ((b - mean) / std) ** 4, 0) / n;
+  if (Math.abs(kurtosis - 3) > 1.5) return false;
+
+  return true;
 }
 
 export function calculateZScore(values: number[]): {
@@ -50,13 +54,19 @@ export function calculateIQR(values: number[]): {
   q1: number;
   q3: number;
   iqrValue: number;
+  upperFence: number;
+  lowerFence: number;
 } {
   const sorted = [...values].sort((a, b) => a - b);
   const q1 = quantile(sorted, 0.25);
   const q3 = quantile(sorted, 0.75);
   const iqrValue = q3 - q1;
-  const scores = values.map((v) => (v < q1 ? v - q1 : v > q3 ? v - q3 : 0));
-  return { scores, q1, q3, iqrValue };
+  const upperFence = q3 + 1.5 * iqrValue;
+  const lowerFence = q1 - 1.5 * iqrValue;
+  const scores = values.map((v) =>
+    v > upperFence ? v - upperFence : v < lowerFence ? v - lowerFence : 0
+  );
+  return { scores, q1, q3, iqrValue, upperFence, lowerFence };
 }
 
 export function determineZone(
@@ -83,12 +93,8 @@ export function analyzeMetric(name: string, values: number[]): MetricAnalysis {
 
   if (method === "zscore") {
     const { scores, mean, std } = calculateZScore(values);
-    const zones = scores.map((s) => determineZone(s, "zscore"));
-    const worstZone = zones.includes("red")
-      ? "red"
-      : zones.includes("yellow")
-      ? "yellow"
-      : "green";
+    const lastScore = scores[scores.length - 1];
+    const zone = determineZone(lastScore, "zscore");
     const maxAbsScore = Math.max(...scores.map(Math.abs));
     const thresholds: ZoneThresholds = {
       yellowUpper: mean + std,
@@ -96,23 +102,19 @@ export function analyzeMetric(name: string, values: number[]): MetricAnalysis {
       yellowLower: mean - std,
       redLower: mean - 3 * std,
     };
-    return { name, method, score: maxAbsScore, zone: worstZone, values, mean, std, thresholds };
+    return { name, method, score: maxAbsScore, zone, values, mean, std, thresholds };
   } else {
-    const { scores, q1, q3, iqrValue } = calculateIQR(values);
-    const zones = scores.map((s) => determineZone(s, "iqr"));
-    const worstZone = zones.includes("red")
-      ? "red"
-      : zones.includes("yellow")
-      ? "yellow"
-      : "green";
+    const { scores, q1, q3, iqrValue, upperFence, lowerFence } = calculateIQR(values);
+    const lastScore = scores[scores.length - 1];
+    const zone = determineZone(lastScore, "iqr");
     const maxAbsScore = Math.max(...scores.map(Math.abs));
     const thresholds: ZoneThresholds = {
-      yellowUpper: q3,
-      redUpper: q3 + 2,
-      yellowLower: q1,
-      redLower: q1 - 2,
+      yellowUpper: upperFence,
+      redUpper: upperFence + 2,
+      yellowLower: lowerFence,
+      redLower: lowerFence - 2,
     };
-    return { name, method, score: maxAbsScore, zone: worstZone, values, q1, q3, iqrValue, thresholds };
+    return { name, method, score: maxAbsScore, zone, values, q1, q3, iqrValue, upperFence, lowerFence, thresholds };
   }
 }
 

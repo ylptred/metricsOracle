@@ -53,35 +53,18 @@ export async function parseXlsx(buffer: ArrayBuffer): Promise<ParsedData> {
   return { headers: metricHeaders, rows };
 }
 
-function readAsText(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsText(file);
-  });
-}
-
-function readAsArrayBuffer(file: File): Promise<ArrayBuffer> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as ArrayBuffer);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsArrayBuffer(file);
-  });
-}
-
 export async function parseFile(file: File): Promise<ParsedData> {
   const name = file.name.toLowerCase();
 
   let data: ParsedData;
 
   if (name.endsWith(".csv")) {
-    const content = await readAsText(file);
+    const arrayBuffer = await file.arrayBuffer();
+    const content = Buffer.from(arrayBuffer).toString("utf-8");
     data = parseTxt(content);
   } else if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
-    const buffer = await readAsArrayBuffer(file);
-    data = await parseXlsx(buffer);
+    const arrayBuffer = await file.arrayBuffer();
+    data = await parseXlsx(arrayBuffer);
   } else {
     throw new Error("Неподдерживаемый формат файла");
   }

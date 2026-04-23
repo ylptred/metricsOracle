@@ -35,18 +35,18 @@ describe("calculateIQR", () => {
     expect(scores.filter((s) => s === 0).length).toBeGreaterThan(0);
   });
 
-  it("returns positive score for value above Q3", () => {
+  it("returns positive score for value above upperFence", () => {
     const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 100];
-    const { scores, q3 } = calculateIQR(values);
+    const { scores, upperFence } = calculateIQR(values);
     const last = scores[values.length - 1];
-    expect(last).toBeCloseTo(100 - q3);
+    expect(last).toBeCloseTo(100 - upperFence);
     expect(last).toBeGreaterThan(0);
   });
 
-  it("returns negative score for value below Q1", () => {
+  it("returns negative score for value below lowerFence", () => {
     const values = [-100, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    const { scores, q1 } = calculateIQR(values);
-    expect(scores[0]).toBeCloseTo(-100 - q1);
+    const { scores, lowerFence } = calculateIQR(values);
+    expect(scores[0]).toBeCloseTo(-100 - lowerFence);
     expect(scores[0]).toBeLessThan(0);
   });
 });

@@ -80,11 +80,13 @@ function scoreLastValue(value: number, analysis: MetricAnalysis): number | null 
   }
   if (
     analysis.method === "iqr" &&
-    analysis.q1 !== undefined &&
-    analysis.q3 !== undefined
+    analysis.upperFence !== undefined &&
+    analysis.lowerFence !== undefined
   ) {
-    const { q1, q3 } = analysis;
-    return value < q1 ? value - q1 : value > q3 ? value - q3 : 0;
+    const { upperFence, lowerFence } = analysis;
+    if (value > upperFence) return value - upperFence;
+    if (value < lowerFence) return value - lowerFence;
+    return 0;
   }
   return null;
 }
@@ -114,15 +116,30 @@ export function buildForecast(
   const lastZone = determineZone(lastScore, analysis.method);
 
   if (lastZone === "green") {
+    let periodsUntilYellow: number | null = null;
+    for (let i = 1; i <= 24; i++) {
+      const futureValue = intercept + slope * (n - 1 + i);
+      const futureScore = scoreLastValue(futureValue, analysis);
+      if (futureScore === null) break;
+      if (determineZone(futureScore, analysis.method) !== "green") {
+        periodsUntilYellow = i;
+        break;
+      }
+    }
+    const absSlope = Math.abs(slope);
     const direction =
-      slope < 0 ? "снижение" : slope > 0 ? "рост" : "стабильность";
+      slope < 0 ? "Снижается" : slope > 0 ? "Растёт" : "Стабильна";
+    const prediction =
+      periodsUntilYellow !== null
+        ? `Метрика в зелёной зоне. ${direction} на ${absSlope.toFixed(2)} ед./период. При текущем темпе войдёт в жёлтую зону через ~${periodsUntilYellow} ${periodWord(periodsUntilYellow)}`
+        : `Метрика в зелёной зоне. Остаётся в норме в ближайшие 24 периода`;
     return {
       metricName,
       slope,
       intercept,
       trendLine,
-      prediction: `Метрика уже в зелёной зоне. Тренд продолжает ${direction}.`,
-      periodsUntilZoneChange: 0,
+      prediction,
+      periodsUntilZoneChange: periodsUntilYellow,
     };
   }
 

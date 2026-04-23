@@ -26,6 +26,8 @@ export interface MetricAnalysis {
   q1?: number;
   q3?: number;
   iqrValue?: number;
+  upperFence?: number;
+  lowerFence?: number;
   thresholds?: ZoneThresholds;
 }
 

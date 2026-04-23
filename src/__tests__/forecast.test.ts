@@ -74,6 +74,7 @@ describe("buildForecast", () => {
     };
     const result = buildForecast("stable", values, analysis, "period");
     expect(result.prediction).toMatch(/зелёной/);
-    expect(result.periodsUntilZoneChange).toBe(0);
+    // constant metric stays green forever → no zone change in 24 periods → null
+    expect(result.periodsUntilZoneChange).toBeNull();
   });
 });

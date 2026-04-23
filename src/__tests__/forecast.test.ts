@@ -61,7 +61,7 @@ describe("buildForecast", () => {
     expect(result.periodsUntilZoneChange).toBeGreaterThan(0);
   });
 
-  it("returns stable prediction for constant metric", () => {
+  it("returns green-zone prediction for constant metric already in green", () => {
     const values = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5];
     const analysis: MetricAnalysis = {
       name: "stable",
@@ -73,7 +73,7 @@ describe("buildForecast", () => {
       std: 0,
     };
     const result = buildForecast("stable", values, analysis, "period");
-    expect(result.prediction).toMatch(/стабильна/);
-    expect(result.periodsUntilZoneChange).toBeNull();
+    expect(result.prediction).toMatch(/зелёной/);
+    expect(result.periodsUntilZoneChange).toBe(0);
   });
 });

@@ -8,6 +8,13 @@ export interface ParsedData {
   rows: MetricRow[];
 }
 
+export interface ZoneThresholds {
+  yellowUpper: number;
+  redUpper: number;
+  yellowLower: number;
+  redLower: number;
+}
+
 export interface MetricAnalysis {
   name: string;
   method: "zscore" | "iqr";
@@ -19,6 +26,7 @@ export interface MetricAnalysis {
   q1?: number;
   q3?: number;
   iqrValue?: number;
+  thresholds?: ZoneThresholds;
 }
 
 export interface TrafficLight {

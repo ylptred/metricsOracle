@@ -70,6 +70,25 @@ function periodWord(n: number): string {
   return "периодов";
 }
 
+function scoreLastValue(value: number, analysis: MetricAnalysis): number | null {
+  if (
+    analysis.method === "zscore" &&
+    analysis.mean !== undefined &&
+    analysis.std !== undefined
+  ) {
+    return analysis.std === 0 ? 0 : (value - analysis.mean) / analysis.std;
+  }
+  if (
+    analysis.method === "iqr" &&
+    analysis.q1 !== undefined &&
+    analysis.q3 !== undefined
+  ) {
+    const { q1, q3 } = analysis;
+    return value < q1 ? value - q1 : value > q3 ? value - q3 : 0;
+  }
+  return null;
+}
+
 export function buildForecast(
   metricName: string,
   values: number[],
@@ -80,42 +99,47 @@ export function buildForecast(
   const n = values.length;
   const trendLine = values.map((_, i) => intercept + slope * i);
 
-  const currentZone = analysis.zone;
+  const lastScore = scoreLastValue(values[n - 1], analysis);
+  if (lastScore === null) {
+    return {
+      metricName,
+      slope,
+      intercept,
+      trendLine,
+      prediction: `Ожидается ${slope < 0 ? "снижение" : slope > 0 ? "рост" : "стабильность"}`,
+      periodsUntilZoneChange: null,
+    };
+  }
+
+  const lastZone = determineZone(lastScore, analysis.method);
+
+  if (lastZone === "green") {
+    const direction =
+      slope < 0 ? "снижение" : slope > 0 ? "рост" : "стабильность";
+    return {
+      metricName,
+      slope,
+      intercept,
+      trendLine,
+      prediction: `Метрика уже в зелёной зоне. Тренд продолжает ${direction}.`,
+      periodsUntilZoneChange: 0,
+    };
+  }
+
   let periodsUntilZoneChange: number | null = null;
 
   for (let i = 1; i <= 24; i++) {
     const futureValue = intercept + slope * (n + i - 1);
-    let futureScore: number;
-
-    if (
-      analysis.method === "zscore" &&
-      analysis.mean !== undefined &&
-      analysis.std !== undefined
-    ) {
-      futureScore =
-        analysis.std === 0
-          ? 0
-          : (futureValue - analysis.mean) / analysis.std;
-    } else if (
-      analysis.method === "iqr" &&
-      analysis.q1 !== undefined &&
-      analysis.q3 !== undefined
-    ) {
-      const { q1, q3 } = analysis;
-      futureScore =
-        futureValue < q1 ? futureValue - q1 : futureValue > q3 ? futureValue - q3 : 0;
-    } else {
-      break;
-    }
+    const futureScore = scoreLastValue(futureValue, analysis);
+    if (futureScore === null) break;
 
     const futureZone = determineZone(futureScore, analysis.method);
-    if (futureZone !== currentZone) {
+    if (futureZone !== lastZone) {
       periodsUntilZoneChange = i;
       break;
     }
   }
 
-  let prediction: string;
   const absSlope = Math.abs(slope);
   const slopeText =
     slope < 0
@@ -124,10 +148,11 @@ export function buildForecast(
         ? `Метрика растёт на ${absSlope.toFixed(2)} ед./период.`
         : "";
 
+  let prediction: string;
   if (slope === 0) {
     prediction = "Метрика стабильна, зона не изменится в ближайшие 24 периода";
   } else if (periodsUntilZoneChange !== null) {
-    prediction = `${slopeText} При текущем темпе покинет ${zoneLabel(currentZone)} зону через ~${periodsUntilZoneChange} ${periodWord(periodsUntilZoneChange)}`;
+    prediction = `${slopeText} При текущем темпе покинет ${zoneLabel(lastZone)} зону через ~${periodsUntilZoneChange} ${periodWord(periodsUntilZoneChange)}`;
   } else {
     prediction = `${slopeText} Зона не изменится в ближайшие 24 периода`;
   }

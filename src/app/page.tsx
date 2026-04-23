@@ -11,7 +11,7 @@ const STEPS = [
   {
     Icon: Upload,
     title: "Загрузка",
-    desc: "Загрузите .txt или .xlsx файл с метриками",
+    desc: "Загрузите .csv или .xlsx файл с метриками",
   },
   {
     Icon: Shield,
@@ -74,7 +74,7 @@ export default function Home() {
         </span>
 
         <h1 className="mb-4 max-w-4xl text-5xl font-bold tracking-tight md:text-7xl">
-          Метрики,{" "}
+          Метрики{" "}
           <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
             как спасательный оракул
           </span>
@@ -86,8 +86,7 @@ export default function Home() {
 
         <p className="mb-10 max-w-2xl text-base leading-relaxed text-zinc-500">
           MetricsOracle анализирует временные ряды с помощью Z-Score и IQR, автоматически
-          обнаруживает аномалии и строит линейный прогноз. Светофорная система сразу
-          показывает: всё под контролем или нужно действовать.
+          обнаруживает аномалии и строит линейный прогноз. Сформированный светофор сразу показывает: всё под контролем или нужно действовать.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-4">
@@ -157,7 +156,7 @@ export default function Home() {
       <section id="upload" className="py-24 px-4">
         <div className="mx-auto max-w-3xl">
           <h2 className="mb-2 text-center text-3xl font-bold">Загрузить данные</h2>
-          <p className="mb-10 text-center text-zinc-500">Форматы: .txt (TSV) или .xlsx</p>
+          <p className="mb-10 text-center text-zinc-500">Форматы: .csv или .xlsx</p>
 
           <div className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5 text-sm">
             <p className="mb-3 font-medium text-zinc-300">Формат файла:</p>

@@ -11,7 +11,7 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
-import type { MetricAnalysis, ForecastResult } from "@/types";
+import type { MetricAnalysis, ForecastResult, ZoneThresholds } from "@/types";
 
 interface Props {
   analysis: MetricAnalysis;
@@ -19,14 +19,8 @@ interface Props {
   periods: string[];
 }
 
-interface Thresholds {
-  yellowUpper: number;
-  redUpper: number;
-  yellowLower: number;
-  redLower: number;
-}
-
-function getThresholds(analysis: MetricAnalysis): Thresholds | null {
+function getThresholds(analysis: MetricAnalysis): ZoneThresholds | null {
+  if (analysis.thresholds) return analysis.thresholds;
   if (
     analysis.method === "zscore" &&
     analysis.mean !== undefined &&

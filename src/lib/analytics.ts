@@ -1,4 +1,4 @@
-import type { MetricAnalysis, ParsedData, TrafficLight } from "@/types";
+import type { MetricAnalysis, ParsedData, TrafficLight, ZoneThresholds } from "@/types";
 
 function calcMean(values: number[]): number {
   return values.reduce((a, b) => a + b, 0) / values.length;
@@ -66,7 +66,7 @@ export function determineZone(
   if (method === "zscore") {
     const abs = Math.abs(score);
     if (abs - 1 > 2) return "red";
-    if (abs - 1 >= 0) return "yellow";
+    if (abs - 1 > 0) return "yellow";
     return "green";
   } else {
     const abs = Math.abs(score);
@@ -90,7 +90,13 @@ export function analyzeMetric(name: string, values: number[]): MetricAnalysis {
       ? "yellow"
       : "green";
     const maxAbsScore = Math.max(...scores.map(Math.abs));
-    return { name, method, score: maxAbsScore, zone: worstZone, values, mean, std };
+    const thresholds: ZoneThresholds = {
+      yellowUpper: mean + std,
+      redUpper: mean + 3 * std,
+      yellowLower: mean - std,
+      redLower: mean - 3 * std,
+    };
+    return { name, method, score: maxAbsScore, zone: worstZone, values, mean, std, thresholds };
   } else {
     const { scores, q1, q3, iqrValue } = calculateIQR(values);
     const zones = scores.map((s) => determineZone(s, "iqr"));
@@ -100,7 +106,13 @@ export function analyzeMetric(name: string, values: number[]): MetricAnalysis {
       ? "yellow"
       : "green";
     const maxAbsScore = Math.max(...scores.map(Math.abs));
-    return { name, method, score: maxAbsScore, zone: worstZone, values, q1, q3, iqrValue };
+    const thresholds: ZoneThresholds = {
+      yellowUpper: q3,
+      redUpper: q3 + 2,
+      yellowLower: q1,
+      redLower: q1 - 2,
+    };
+    return { name, method, score: maxAbsScore, zone: worstZone, values, q1, q3, iqrValue, thresholds };
   }
 }
 

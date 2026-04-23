@@ -52,14 +52,16 @@ describe("calculateIQR", () => {
 });
 
 describe("determineZone (zscore)", () => {
-  it("returns green for |score| < 1", () => {
+  it("returns green for |score| <= 1", () => {
     expect(determineZone(0, "zscore")).toBe("green");
     expect(determineZone(0.9, "zscore")).toBe("green");
     expect(determineZone(-0.5, "zscore")).toBe("green");
+    expect(determineZone(1, "zscore")).toBe("green");
+    expect(determineZone(-1, "zscore")).toBe("green");
   });
 
-  it("returns yellow for 1 <= |score| <= 3", () => {
-    expect(determineZone(1, "zscore")).toBe("yellow");
+  it("returns yellow for 1 < |score| <= 3", () => {
+    expect(determineZone(1.1, "zscore")).toBe("yellow");
     expect(determineZone(3, "zscore")).toBe("yellow");
     expect(determineZone(-2, "zscore")).toBe("yellow");
   });

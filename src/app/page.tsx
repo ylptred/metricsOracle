@@ -107,6 +107,23 @@ export default function Home() {
             {isDemoLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             Запустить демо
           </button>
+          <a
+            href="#contacts"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl
+                       bg-amber-500 hover:bg-amber-400 text-black font-semibold
+                       transition-all duration-200 hover:scale-105 shadow-lg
+                       shadow-amber-500/25"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03
+                       8-9 8a9.953 9.953 0 01-4.929-1.301L3 20l1.395-3.72
+                       C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9
+                       3.582 9 8z" />
+            </svg>
+            Хотите задать вопрос или связаться?
+          </a>
         </div>
 
         {demoError && (
@@ -230,6 +247,67 @@ export default function Home() {
           </section>
         )}
       </div>
+
+      {/* ─── КОНТАКТЫ ─────────────────────────────────────────────── */}
+      <section id="contacts" className="w-full max-w-2xl mx-auto px-4 py-16">
+        <div className="rounded-2xl border border-white/10 bg-white/5
+                        backdrop-blur-sm p-8 text-center">
+          <h2 className="text-2xl font-bold text-white mb-2">
+            Хотите задать вопрос или связаться?
+          </h2>
+          <p className="text-white/50 text-sm mb-8">
+            Буду рад ответить на вопросы по докладу
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="https://t.me/shnappis" target="_blank" rel="noopener noreferrer"
+               className="flex items-center justify-center gap-3 px-6 py-3 rounded-xl
+                          bg-[#229ED9]/20 hover:bg-[#229ED9]/30 border border-[#229ED9]/30
+                          text-[#229ED9] font-medium transition-all duration-200
+                          hover:scale-105">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373
+                         12-12S18.627 0 12 0zm5.562 8.248l-1.97 9.289c-.145.658
+                         -.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295
+                         -.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373
+                         -.12L8.32 14.617l-2.96-.924c-.643-.204-.657-.643.136-.953
+                         l11.57-4.461c.537-.194 1.006.131.496.969z"/>
+              </svg>
+              @shnappis
+            </a>
+            <a href="https://www.linkedin.com/in/danila-smirnov-702a39381"
+               target="_blank" rel="noopener noreferrer"
+               className="flex items-center justify-center gap-3 px-6 py-3 rounded-xl
+                          bg-[#0A66C2]/20 hover:bg-[#0A66C2]/30 border border-[#0A66C2]/30
+                          text-[#0A66C2] font-medium transition-all duration-200
+                          hover:scale-105">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852
+                         -3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414
+                         v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267
+                         2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063
+                         -2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9
+                         h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542
+                         C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24
+                         22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+              </svg>
+              Danila Smirnov
+            </a>
+            <a href="mailto:ylptred@gmail.com"
+               className="flex items-center justify-center gap-3 px-6 py-3 rounded-xl
+                          bg-white/5 hover:bg-white/10 border border-white/10
+                          text-white/70 hover:text-white font-medium transition-all
+                          duration-200 hover:scale-105">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                   stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0
+                         002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+              ylptred@gmail.com
+            </a>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
